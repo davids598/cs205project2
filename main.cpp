@@ -7,13 +7,13 @@
 #include <algorithm>
 #include <limits>
 #include <cmath>
-
+#include <sstream>
 using namespace std;
 
 pair<string, int> Input();
 void Search(vector<vector<float> >, int, int);
-float Accuracy(vector<vector<float> >, vector<int>);
-long double Distance(vector<vector<float> >, vector<int>, int, int);
+float Accuracy(vector<vector<float> >&, vector<int>);
+float Distance(vector<vector<float> >&, vector<int>&, int, int);
 
 int main() {
     pair<string, int> return_vals = Input();
@@ -139,6 +139,7 @@ void Search(vector<vector<float> > data, int choice, int data_length) {
 
     while (avail_features.size() != 0) {
         vector<float> accs;
+        stringstream output_data;
         if (choice == 1) {
             //Forward Selection
             for (int i = 0; i < avail_features.size(); ++i) {
@@ -146,15 +147,15 @@ void Search(vector<vector<float> > data, int choice, int data_length) {
                 frontier_search.push_back(avail_features.at(i));
                 float acc = Accuracy(data, frontier_search);
                 accs.push_back(acc);
-                cout << "Using features(s) {";
+                output_data << "Using features(s) {";
                 for (int i = 0; i < frontier_search.size(); ++i) {
                     if (i == frontier_search.size() - 1) {
-                        cout << frontier_search.at(i);
+                        output_data << frontier_search.at(i);
                     } else {
-                        cout << frontier_search.at(i) << ",";
+                        output_data << frontier_search.at(i) << ",";
                     }
                 }
-                cout << "} accuracy is " << acc*100 << "%" << endl;
+                output_data << "} accuracy is " << acc*100 << "%" << endl;
             }
         } else {
             //Backwards Elmination
@@ -163,20 +164,22 @@ void Search(vector<vector<float> > data, int choice, int data_length) {
                 frontier_search.erase(frontier_search.begin() + i);
                 float acc = Accuracy(data, frontier_search);
                 accs.push_back(acc);
-                cout << "Using features(s) {";
+                output_data << "Using features(s) {";
                 for (int i = 0; i < frontier_search.size(); ++i) {
                     if (i == frontier_search.size() - 1) {
-                        cout << frontier_search.at(i);
+                        output_data << frontier_search.at(i);
                     } else {
-                        cout << frontier_search.at(i) << ",";
+                        output_data << frontier_search.at(i) << ",";
                     }
                 }
-                cout << "} accuracy is " << acc*100 << "%" << endl;
+                output_data << "} accuracy is " << acc*100 << "%" << endl;
             }
         }
         //Find Best feature, add to curr set, update best acc and avail_features, and print.
         //Also print if accuracy has decreased since the last step
         //Empty Accs
+        cout << output_data.str();
+        output_data.flush();
         auto max = max_element(accs.begin(), accs.end());
         int index = distance(accs.begin(), max);
         if (*max < best_acc) {
@@ -244,7 +247,7 @@ void Search(vector<vector<float> > data, int choice, int data_length) {
     cout << "} accuracy is " << best_acc*100 << "%" << endl;
 }
 
-float Accuracy(vector<vector<float> > data, vector<int> feature_set) {
+float Accuracy(vector<vector<float> > &data, vector<int> feature_set) {
     int correct = 0;
     for (int i = 0; i < data.size(); ++i) {
         int label = data.at(i).at(0);
@@ -254,7 +257,7 @@ float Accuracy(vector<vector<float> > data, vector<int> feature_set) {
 
         for (int k = 0; k < data.size(); ++k) {
             if (k != i) {
-                long double distance = Distance(data, feature_set, i, k);
+                float distance = Distance(data, feature_set, i, k);
                 if (distance < nearest_neighbor_dist) {
                     nearest_neighbor_dist = distance;
                     loc = k;
@@ -275,11 +278,11 @@ float Accuracy(vector<vector<float> > data, vector<int> feature_set) {
     return accuracy;
 }
 
-long double Distance(vector<vector<float> > data, vector<int> feature_set, int i, int k) {
-    long double sum = 0;
+float Distance(vector<vector<float> > &data, vector<int> &feature_set, int i, int k) {
+    float sum = 0;
     //cout << "i is: " << i << " and k is: " << k << endl;
     for (int j = 0; j < feature_set.size(); ++j) {
-        long double diff = abs(data.at(i).at(feature_set.at(j)) - data.at(k).at(feature_set.at(j)));
+        float diff = abs(data.at(i).at(feature_set.at(j)) - data.at(k).at(feature_set.at(j)));
         //cout << "Diff is: " << diff << " ";
         sum += diff * diff;
     }
