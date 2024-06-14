@@ -8,6 +8,7 @@
 #include <limits>
 #include <cmath>
 #include <sstream>
+#include <chrono>
 using namespace std;
 
 pair<string, int> Input();
@@ -17,6 +18,8 @@ float Distance(vector<vector<float> >&, vector<int>&, int, int);
 
 int main() {
     pair<string, int> return_vals = Input();
+    //Start Timer
+    auto start = chrono::high_resolution_clock::now();
     //Read in values from selected data
     vector<vector<float> > data;
 
@@ -73,6 +76,17 @@ int main() {
     */
 
     Search(data, return_vals.second, data_size-1);
+    //End Timer and print to screen
+    auto end = chrono::high_resolution_clock::now();
+
+    //Different Prints depending on num features
+    if (data_size > 20) {
+        auto diff = chrono::duration_cast<chrono::seconds>(end - start);
+        cout << "Time used for search is: " << setprecision(4) << diff.count() << " seconds" << endl;
+    } else {
+        auto diff = chrono::duration_cast<chrono::milliseconds>(end - start);
+        cout << "Time used for search is: " << setprecision(4) << diff.count() << " milliseconds" << endl;
+    }
     return 0;
 }
 
@@ -184,7 +198,7 @@ void Search(vector<vector<float> > data, int choice, int data_length) {
         int index = distance(accs.begin(), max);
         if (*max < best_acc) {
             cout << endl;
-            cout << "Accuracy has decreased!! Still continuing" << endl;
+            cout << "Accuracy has decreased!! Still continuing";
         }
 
         if (choice == 1) {
@@ -207,7 +221,7 @@ void Search(vector<vector<float> > data, int choice, int data_length) {
                     }
                 }
             }
-            cout << "} accuracy is " << *max*100 << "%" << endl;
+            cout << "}, accuracy is " << *max*100 << "%" << endl;
             cout << endl;
         }
         
@@ -244,7 +258,7 @@ void Search(vector<vector<float> > data, int choice, int data_length) {
             cout << best_features.at(i) << ",";
         }
     }
-    cout << "} accuracy is " << best_acc*100 << "%" << endl;
+    cout << "}, accuracy is " << best_acc*100 << "%" << endl;
 }
 
 float Accuracy(vector<vector<float> > &data, vector<int> feature_set) {
