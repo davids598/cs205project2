@@ -22,7 +22,7 @@ int main() {
     auto start = chrono::high_resolution_clock::now();
     //Read in values from selected data
     vector<vector<float> > data;
-
+    //Calculates number of features in this data set
     int data_size = 0;
     float number_calc;
     ifstream inputFile_calc;
@@ -38,7 +38,7 @@ int main() {
         }
     }
     inputFile_calc.close();
-
+    //Acctually reads in the data and stores it in the data 2D vector
     float number;
     ifstream inputFile;
 
@@ -110,7 +110,7 @@ pair<string, int> Input() {
 }
 
 void Search(vector<vector<float> > data, int choice, int data_length) {
-    vector<int> curr_features;
+    vector<int> curr_features; //Have 2 vectors for curr state and all possible modifications
     vector<int> avail_features;
     if (choice == 1) {
         //Forward Selection
@@ -128,7 +128,7 @@ void Search(vector<vector<float> > data, int choice, int data_length) {
     if (choice == 1) {
         //Forward Selection
         int count = 0;
-        float default_rate;
+        float default_rate; //Calculate Default rate for forward search
         for (int i = 0; i < data.size(); ++i) {
             if (data.at(i).at(0) == 1) {
                 count++;
@@ -148,14 +148,14 @@ void Search(vector<vector<float> > data, int choice, int data_length) {
 
     cout << "Beginning Search" << endl << endl;
 
-    float best_acc = 0;
+    float best_acc = 0; //Store best accuracy and features to get that accuracy
     vector<int> best_features;
 
     while (avail_features.size() != 0) {
         vector<float> accs;
         stringstream output_data;
         if (choice == 1) {
-            //Forward Selection
+            //Forward Selection, generate all possible next nodes and calcuate accuracy values
             for (int i = 0; i < avail_features.size(); ++i) {
                 vector<int> frontier_search = curr_features;
                 frontier_search.push_back(avail_features.at(i));
@@ -172,7 +172,7 @@ void Search(vector<vector<float> > data, int choice, int data_length) {
                 output_data << "} accuracy is " << acc*100 << "%" << endl;
             }
         } else {
-            //Backwards Elmination
+            //Backwards Elmination, generate all possible next nodes and calcuate accuracy values
             for (int i = 0; i < avail_features.size(); ++i) {
                 vector<int> frontier_search = curr_features;
                 frontier_search.erase(frontier_search.begin() + i);
@@ -191,17 +191,17 @@ void Search(vector<vector<float> > data, int choice, int data_length) {
         }
         //Find Best feature, add to curr set, update best acc and avail_features, and print.
         //Also print if accuracy has decreased since the last step
-        //Empty Accs
-        cout << output_data.str();
+        //Empty Accs(list of all accuracy values for each frontier node)
+        cout << output_data.str(); //Flush output stream to print to terminal
         output_data.flush();
-        auto max = max_element(accs.begin(), accs.end());
+        auto max = max_element(accs.begin(), accs.end()); //Get best accuracy and position
         int index = distance(accs.begin(), max);
-        if (*max < best_acc) {
+        if (*max < best_acc) { //Print if no improvement compared to best accuracy
             cout << endl;
             cout << "Accuracy has decreased!! Still continuing";
         }
 
-        if (choice == 1) {
+        if (choice == 1) { //Forward Search print for best feature set this iteration
             cout << endl;
             cout << "Best feature set was {";
             for (int i = 0; i < curr_features.size(); ++i) {
@@ -209,7 +209,7 @@ void Search(vector<vector<float> > data, int choice, int data_length) {
             }
             cout << avail_features.at(index) << "}, accuracy is " << *max*100 << "%" << endl;
             cout << endl;
-        } else {
+        } else { //Backward Elimination print for best feature set this iteration
             cout << endl;
             cout << "Best feature set was {";
             for (int i = 0; i < curr_features.size(); ++i) {
@@ -225,16 +225,17 @@ void Search(vector<vector<float> > data, int choice, int data_length) {
             cout << endl;
         }
         
-        if (*max > best_acc) {
+        if (*max > best_acc) { //Update best accuracy if we have a new best accuracy
             best_acc = *max;
-            if (choice == 1) {
+            if (choice == 1) { //Need to update best_features array if new best feature set found
                 best_features = curr_features;
                 best_features.push_back(avail_features.at(index));
-            } else {
+            } else { //Same update of best_features, but for backward search
                 best_features = curr_features;
                 best_features.erase(best_features.begin()+index);
             }
         }
+        //Update vectors to prepare for next iteration of search
         //Update curr set and avail features
         if (choice == 1) {
             //Add to curr and remove from avail in Forward
@@ -249,6 +250,7 @@ void Search(vector<vector<float> > data, int choice, int data_length) {
         accs.erase(accs.begin(), accs.end());
 
     }
+    //Final print at end of while loop, print best accuracy list and percentage correct
     cout << endl;
     cout << "Finished Search!!! The best feature subset is {";
     for (int i = 0; i < best_features.size(); ++i) {
@@ -263,15 +265,15 @@ void Search(vector<vector<float> > data, int choice, int data_length) {
 
 float Accuracy(vector<vector<float> > &data, vector<int> feature_set) {
     int correct = 0;
-    for (int i = 0; i < data.size(); ++i) {
+    for (int i = 0; i < data.size(); ++i) { //For each instance, find closest neighbor
         int label = data.at(i).at(0);
         int loc = -1;
         float nearest_neighbor_dist = numeric_limits<float>::max();
         int calc_label = -1;
 
         for (int k = 0; k < data.size(); ++k) {
-            if (k != i) {
-                float distance = Distance(data, feature_set, i, k);
+            if (k != i) { //Don't test against yourself
+                float distance = Distance(data, feature_set, i, k); //Calculate distance between instance i and current neighbor k
                 if (distance < nearest_neighbor_dist) {
                     nearest_neighbor_dist = distance;
                     loc = k;
@@ -280,12 +282,12 @@ float Accuracy(vector<vector<float> > &data, vector<int> feature_set) {
             }
         }
 
-        if (calc_label == label) {
+        if (calc_label == label) { //If correctly predicted, update count of correct predictions
             correct++;
             //cout << "Correct Updated!" << endl;
         }
     }
-    float accuracy = (float)correct / (float)data.size();
+    float accuracy = (float)correct / (float)data.size(); //Return accuracy
     //cout << "Data size is " << data.size() << endl;
     //cout << "Correct is " << correct << endl;
     //cout << "Accuracy is " << accuracy << endl;
@@ -293,7 +295,7 @@ float Accuracy(vector<vector<float> > &data, vector<int> feature_set) {
 }
 
 float Distance(vector<vector<float> > &data, vector<int> &feature_set, int i, int k) {
-    float sum = 0;
+    float sum = 0; //sum Euclidean distance for every selected feature and then get final distance calc
     //cout << "i is: " << i << " and k is: " << k << endl;
     for (int j = 0; j < feature_set.size(); ++j) {
         float diff = abs(data.at(i).at(feature_set.at(j)) - data.at(k).at(feature_set.at(j)));
